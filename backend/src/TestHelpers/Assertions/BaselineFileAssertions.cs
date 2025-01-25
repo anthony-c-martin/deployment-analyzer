@@ -10,8 +10,8 @@ using FluentAssertions.Primitives;
 namespace TestHelpers;
 public class BaselineFileAssertions : ReferenceTypeAssertions<BaselineFile, BaselineFileAssertions>
 {
-    public BaselineFileAssertions(BaselineFile instance)
-        : base(instance)
+    public BaselineFileAssertions(BaselineFile instance, AssertionChain assertionChain)
+        : base(instance, assertionChain)
     {
     }
 
@@ -22,7 +22,7 @@ public static class BaselineFileAssertionsExtensions
 {
     public static BaselineFileAssertions Should(this BaselineFile instance)
     {
-        return new BaselineFileAssertions(instance);
+        return new BaselineFileAssertions(instance, AssertionChain.GetOrCreate());
     }
 
     public static AndConstraint<BaselineFileAssertions> ExistWithBaselineUpdateInfo(this BaselineFileAssertions instance, string because = "", params object[] becauseArgs)
@@ -36,7 +36,7 @@ public static class BaselineFileAssertionsExtensions
 
         var fullLocation = BaselineHelper.TryGetAbsolutePathRelativeToRepoRoot(instance.Subject.EmbeddedFile.RelativeSourcePath);
 
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(testPassed)
             .FailWith(

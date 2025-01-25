@@ -58,7 +58,7 @@ public static class StringAssertionsExtensions
         var fullActualLocation = BaselineHelper.TryGetAbsolutePathRelativeToRepoRoot(actualLocation);
         var fullExpectedLocation = BaselineHelper.TryGetAbsolutePathRelativeToRepoRoot(expectedLocation);
 
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(testPassed)
             .FailWith(
@@ -118,7 +118,7 @@ public static class StringAssertionsExtensions
     public static AndConstraint<StringAssertions> HaveLengthLessThanOrEqualTo(this StringAssertions instance, int maxLength, string because = "", params object[] becauseArgs)
     {
         int length = instance.Subject.Length;
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(length <= maxLength)
             .FailWith("Expected {0} to have length less than or equal to {1}, but it has length {2}", instance.Subject, maxLength, length);

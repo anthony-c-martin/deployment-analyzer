@@ -10,8 +10,8 @@ using FluentAssertions.Primitives;
 namespace TestHelpers;
 public class BaselineFolderAssertions : ReferenceTypeAssertions<BaselineFolder, BaselineFolderAssertions>
 {
-    public BaselineFolderAssertions(BaselineFolder instance)
-        : base(instance)
+    public BaselineFolderAssertions(BaselineFolder instance, AssertionChain assertionChain)
+        : base(instance, assertionChain)
     {
     }
 
@@ -22,7 +22,7 @@ public static class BaselineFolderAssertionsExtensions
 {
     public static BaselineFolderAssertions Should(this BaselineFolder instance)
     {
-        return new BaselineFolderAssertions(instance);
+        return new BaselineFolderAssertions(instance, AssertionChain.GetOrCreate());
     }
 
     public static AndConstraint<BaselineFolderAssertions> ContainExpectedFiles(this BaselineFolderAssertions instance)

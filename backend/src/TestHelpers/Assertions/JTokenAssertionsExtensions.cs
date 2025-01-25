@@ -15,7 +15,7 @@ public static class JTokenAssertionsExtensions
 {
     public static JTokenAssertions Should(this JToken? instance)
     {
-        return new JTokenAssertions(instance);
+        return new JTokenAssertions(instance, AssertionChain.GetOrCreate());
     }
 
     private static string? GetJsonDiff(JToken? first, JToken? second)
@@ -52,7 +52,7 @@ public static class JTokenAssertionsExtensions
         var fullActualLocation = BaselineHelper.TryGetAbsolutePathRelativeToRepoRoot(actualLocation);
         var fullExpectedLocation = BaselineHelper.TryGetAbsolutePathRelativeToRepoRoot(expectedLocation);
 
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(testPassed)
             .FailWith(
@@ -67,7 +67,7 @@ public static class JTokenAssertionsExtensions
 
     public static AndConstraint<JTokenAssertions> DeepEqual(this JTokenAssertions instance, JToken expected, string because = "", params object[] becauseArgs)
     {
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(JToken.DeepEquals(instance.Subject, expected))
             .FailWith("Expected {0} but got {1}. Differences: {2}", expected.ToString(), instance.Subject?.ToString(), GetJsonDiff(instance.Subject, expected));
@@ -79,12 +79,12 @@ public static class JTokenAssertionsExtensions
     {
         var valueAtPath = instance.Subject?.SelectToken(jtokenPath);
 
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(valueAtPath is not null)
             .FailWith("Expected value at path {0} to be {1}{reason} but it was null. Original JSON: {2}", jtokenPath, expected.ToString(), instance.Subject?.ToString());
 
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(JToken.DeepEquals(valueAtPath, expected))
             .FailWith("Expected value at path {0} to be {1}{reason} but it was {2}", jtokenPath, expected.ToString(), valueAtPath?.ToString());
@@ -96,7 +96,7 @@ public static class JTokenAssertionsExtensions
     {
         var valueAtPath = instance.Subject?.SelectToken(jtokenPath);
 
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(valueAtPath is null)
             .FailWith("Expected value at path {0} to be null{reason}, but it was {1}", jtokenPath, valueAtPath);
@@ -106,7 +106,7 @@ public static class JTokenAssertionsExtensions
 
     public static AndConstraint<JTokenAssertions> NotHaveValue(this JTokenAssertions instance, string because = "", params object[] becauseArgs)
     {
-        Execute.Assertion
+        instance.CurrentAssertionChain
             .BecauseOf(because, becauseArgs)
             .ForCondition(instance.Subject is null)
             .FailWith("Expected value to be null{reason}, but it was {0}", instance.Subject?.ToString());
