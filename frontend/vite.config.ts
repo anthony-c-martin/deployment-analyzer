@@ -10,7 +10,7 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: path.resolve(__dirname, '../backend/bin/Release/net8.0/publish/wwwroot/_framework/'),
+          src: path.resolve(__dirname, '../backend/src/DeploymentAnalyzer/bin/Release/net8.0/publish/wwwroot/_framework/'),
           dest: './',
         },
       ],

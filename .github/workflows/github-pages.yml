@@ -25,30 +25,38 @@ jobs:
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: backend/global.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/package.json
 
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
 
+      - name: .NET Tests
+        run: dotnet test
+        working-directory: ./backend
+
       - name: NPM Install
         run: npm ci
-        working-directory: ./src/frontend
+        working-directory: ./frontend
 
       # - name: Test
       #   run: npm run test
-      #   working-directory: ./src/frontend
+      #   working-directory: ./frontend
 
       - name: Build
         run: npm run build
-        working-directory: ./src/frontend
+        working-directory: ./frontend
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./src/frontend/dist
+          path: ./frontend/dist
 
   deploy:
     name: Deploy

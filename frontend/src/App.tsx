@@ -4,7 +4,7 @@ import { Alert, Container, Form, Nav, Navbar, Table } from 'react-bootstrap'
 
 function App({ interop }: { interop: DotnetInterop }) {
   const [template, setTemplate] = useState<string>();
-  const [_, setParameters] = useState<string>();
+  const [parameters, setParameters] = useState<string>();
 
   const handleTemplateFileChange = async (e: React.ChangeEvent<HTMLInputElement>) =>
     setTemplate(await e.target.files?.item(0)?.text() ?? undefined);
@@ -12,7 +12,12 @@ function App({ interop }: { interop: DotnetInterop }) {
   const handleParametersFileChange = async (e: React.ChangeEvent<HTMLInputElement>) =>
     setParameters(await e.target.files?.item(0)?.text() ?? undefined);
 
-  const metadata = template ? interop.getTemplateMetadata({ template }) : undefined;
+  const metadataResult = template ? tryExecute(() => interop.getTemplateMetadata({ template })) : undefined;
+  const templateError = metadataResult?.error ?? metadataResult?.value.validationMessage;
+  const metadata = metadataResult?.value;
+
+  const parsedTemplateResult = template ? tryExecute(() => interop.getParsedTemplate({ template, parameters })) : undefined;
+  const expandedTemplate = parsedTemplateResult?.value ? JSON.parse(parsedTemplateResult.value.expandedTemplate) : undefined;
 
   return (
     <>
@@ -28,8 +33,8 @@ function App({ interop }: { interop: DotnetInterop }) {
           <Form.Label>Upload a template file</Form.Label>
           <Form.Control type="file" onChange={handleTemplateFileChange} />
         </Form.Group>
-        {metadata?.validationMessage &&
-          <Alert variant="danger">{metadata.validationMessage}</Alert>
+        {templateError &&
+          <Alert variant="danger">{templateError}</Alert>
         }
         <Form.Group controlId="formFile" className="mb-3">
           <Form.Label>Upload a parameters file</Form.Label>
@@ -43,6 +48,12 @@ function App({ interop }: { interop: DotnetInterop }) {
               <tr>
                 <td>Template Hash</td>
                 <td>{metadata.templateHash}</td>
+              </tr>
+            }
+            {parsedTemplateResult?.value?.parametersHash &&
+              <tr>
+                <td>Parameters Hash</td>
+                <td>{parsedTemplateResult.value.parametersHash}</td>
               </tr>
             }
             {metadata?.generatorName &&
@@ -66,8 +77,28 @@ function App({ interop }: { interop: DotnetInterop }) {
           </tbody>
         </Table>
       </Container>
+      {parsedTemplateResult?.error &&
+        <Alert variant="danger">{parsedTemplateResult.error}</Alert>
+      }
+      {expandedTemplate &&
+      <Container>
+        <code>
+          <pre>
+            {JSON.stringify(expandedTemplate, null, 2)}
+          </pre>
+        </code>
+      </Container>
+      }
     </>
   )
 }
 
 export default App
+
+function tryExecute<T>(func: () => T) {
+  try {
+    return { value: func() };
+  } catch (e) {
+    return { error: `${e}`};
+  }
+}

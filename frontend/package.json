@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build-wasm": "dotnet publish -c Release ../backend/backend.csproj",
+    "build-wasm": "dotnet publish -c Release ../backend/src/DeploymentAnalyzer/DeploymentAnalyzer.csproj",
     "dev": "npm run build-wasm && vite",
     "build": "npm run build-wasm && tsc -b && vite build",
     "lint": "eslint .",

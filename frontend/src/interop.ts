@@ -9,8 +9,19 @@ type GetTemplateMetadataResponse = {
   validationMessage?: string;
 }
 
+type GetParsedTemplateRequest = {
+  template: string;
+  parameters?: string;
+}
+
+type GetParsedTemplateResponse = {
+  expandedTemplate: string;
+  parametersHash: string;
+}
+
 export interface DotnetInterop {
   getTemplateMetadata(request: GetTemplateMetadataRequest): GetTemplateMetadataResponse;
+  getParsedTemplate(request: GetParsedTemplateRequest): GetParsedTemplateResponse;
 }
 
 function wrapInteropMethod<TIn, TOut>(interop: any, methodName: string): (arg: TIn) => TOut {
@@ -20,6 +31,7 @@ function wrapInteropMethod<TIn, TOut>(interop: any, methodName: string): (arg: T
 function getDotnetInterop(interop: any): DotnetInterop {
   return {
     getTemplateMetadata: wrapInteropMethod<GetTemplateMetadataRequest, GetTemplateMetadataResponse>(interop, 'GetTemplateMetadata'),
+    getParsedTemplate: wrapInteropMethod<GetTemplateMetadataRequest, GetParsedTemplateResponse>(interop, 'GetParsedTemplate'),
   }
 }
 

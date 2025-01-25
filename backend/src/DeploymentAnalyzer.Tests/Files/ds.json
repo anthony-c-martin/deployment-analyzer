@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.32.4.45862",
+      "templateHash": "785693713731518109"
+    }
+  },
+  "parameters": {
+    "fooParam": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "$fxv#0": "#!/bin/bash\n\n"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2023-08-01",
+      "name": "[parameters('fooParam')]",
+      "location": "west us",
+      "kind": "AzureCLI",
+      "properties": {
+        "azCliVersion": "123",
+        "retentionInterval": "P1D",
+        "scriptContent": "[variables('$fxv#0')]"
+      }
+    },
+    {
+      "copy": {
+        "name": "foo2",
+        "count": "[length(range(0, 2))]"
+      },
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2023-08-01",
+      "name": "[format('foo{0}', range(0, 2)[copyIndex()])]",
+      "location": "west us",
+      "kind": "AzureCLI",
+      "properties": {
+        "azCliVersion": "123",
+        "retentionInterval": "P1D",
+        "scriptContent": "#!/bin/bash\n"
+      }
+    }
+  ]
+}
