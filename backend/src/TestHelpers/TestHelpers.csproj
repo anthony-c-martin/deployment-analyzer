@@ -7,7 +7,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="7.0.0" />
     <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
-    <PackageReference Include="Azure.Bicep.Types.Az" Version="0.2.727" />
+    <PackageReference Include="Azure.Bicep.Types.Az" Version="0.2.737" />
     <PackageReference Include="JsonDiffPatch.Net" Version="2.3.0" />
     <PackageReference Include="DiffPlex" Version="1.7.2" />
   </ItemGroup>
