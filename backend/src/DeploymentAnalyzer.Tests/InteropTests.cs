@@ -9,12 +9,12 @@ namespace DeploymentAnalyzer.Tests;
 public class InteropTests
 {
     [TestMethod]
-    public void GetTemplateMetadata_returns_metadata()
+    public void GetTemplateInfo_returns_metadata()
     {
         var templateFile = new EmbeddedFile(Assembly.GetExecutingAssembly(), "Files/ds.json");
 
         var interop = new Interop();
-        var result = interop.GetTemplateMetadata(new(
+        var result = interop.GetTemplateInfo(new(
             Template: templateFile.Contents!));
 
         result.TemplateHash.Should().Be("785693713731518109");
@@ -31,7 +31,8 @@ public class InteropTests
         var interop = new Interop();
         var result = interop.GetParsedTemplate(new(
             Template: templateFile.Contents!,
-            Parameters: parametersFile.Contents!));
+            Parameters: parametersFile.Contents!,
+            Metadata: "{}"));
 
         result.ExpandedTemplate.Should().NotBeNull();
         result.ParmetersHash.Should().Be("8013686910464437545");

@@ -1,8 +1,8 @@
-type GetTemplateMetadataRequest = {
+type GetTemplateInfoRequest = {
   template: string;
 }
 
-type GetTemplateMetadataResponse = {
+type GetTemplateInfoResponse = {
   templateHash?: string;
   generatorName?: string;
   generatorVersion?: string;
@@ -12,6 +12,7 @@ type GetTemplateMetadataResponse = {
 type GetParsedTemplateRequest = {
   template: string;
   parameters?: string;
+  metadata: string;
 }
 
 type GetParsedTemplateResponse = {
@@ -20,18 +21,28 @@ type GetParsedTemplateResponse = {
 }
 
 export interface DotnetInterop {
-  getTemplateMetadata(request: GetTemplateMetadataRequest): GetTemplateMetadataResponse;
+  getTemplateInfo(request: GetTemplateInfoRequest): GetTemplateInfoResponse;
   getParsedTemplate(request: GetParsedTemplateRequest): GetParsedTemplateResponse;
 }
 
-function wrapInteropMethod<TIn, TOut>(interop: any, methodName: string): (arg: TIn) => TOut {
-  return (arg: TIn) => interop.invokeMethod(methodName, arg);
+function invokeMethod(interop: any, methodName: string) {
+  return (arg: any) => {
+    try {
+      return interop.invokeMethod(methodName, arg);
+    } catch (e: any) {
+      if (e.message && e.stack) {
+        throw `Managed Exception: ${e.message}\n${e.stack}`;
+      }
+
+      throw e;
+    }
+  }
 }
 
 function getDotnetInterop(interop: any): DotnetInterop {
   return {
-    getTemplateMetadata: wrapInteropMethod<GetTemplateMetadataRequest, GetTemplateMetadataResponse>(interop, 'GetTemplateMetadata'),
-    getParsedTemplate: wrapInteropMethod<GetTemplateMetadataRequest, GetParsedTemplateResponse>(interop, 'GetParsedTemplate'),
+    getTemplateInfo: invokeMethod(interop, "GetTemplateInfo"),
+    getParsedTemplate: invokeMethod(interop, "GetParsedTemplate"),
   }
 }
 

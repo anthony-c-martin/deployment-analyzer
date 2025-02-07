@@ -10,22 +10,23 @@ using Azure.Deployments.Core.Definitions;
 using Microsoft.WindowsAzure.ResourceStack.Common.Json;
 using Azure.Deployments.Core.Entities;
 using Microsoft.WindowsAzure.ResourceStack.Common.Collections;
+using Newtonsoft.Json.Linq;
 
 namespace DeploymentAnalyzer;
 
 public class Interop
 {
-    public record GetTemplateMetadataRequest(
+    public record GetTemplateInfoRequest(
         string Template);
 
-    public record GetTemplateMetadataResponse(
+    public record GetTemplateInfoResponse(
         string? TemplateHash,
         string? GeneratorName,
         string? GeneratorVersion,
         string? ValidationMessage);
 
     [JSInvokable]
-    public GetTemplateMetadataResponse GetTemplateMetadata(GetTemplateMetadataRequest request)
+    public GetTemplateInfoResponse GetTemplateInfo(GetTemplateInfoRequest request)
     {
         Template template;
         try
@@ -63,6 +64,7 @@ public class Interop
 
     public record GetParsedTemplateRequest(
         string Template,
+        string Metadata,
         string? Parameters);
 
     public record GetParsedTemplateResponse(
@@ -73,9 +75,10 @@ public class Interop
     public GetParsedTemplateResponse GetParsedTemplate(GetParsedTemplateRequest request)
     {
         var template = TemplateEngine.ParseTemplate(request.Template);
+        var metadata = ParseMetadata(request.Metadata);
 
         Dictionary<string, ITemplateLanguageExpression> parametersDictionary = [];
-        if (request.Parameters?.TryFromJson<DeploymentParametersDefinition>() is {} parametersDefinition)
+        if (request.Parameters?.TryFromJson<DeploymentParametersDefinition>() is { } parametersDefinition)
         {
             parametersDictionary = parametersDefinition.Parameters.ToDictionary(x => x.Key, x => JTokenConverter.ConvertToLanguageExpression(x.Value.Value));
         }
@@ -88,18 +91,7 @@ public class Interop
             apiVersion: new StringExpression(CoreConstants.ApiVersion20240701, null),
             suppliedParameterValues: parametersDictionary,
             parameterValuesPositionalMetadata: null,
-            metadata: new InsensitiveDictionary<ITemplateLanguageExpression>() {
-                /*
-                [DeploymentMetadata.TenantKey] = new UnevaluableExpression(null),
-                [DeploymentMetadata.ManagementGroupKey] = new UnevaluableExpression(null),
-                [DeploymentMetadata.SubscriptionKey] = new UnevaluableExpression(null),
-                [DeploymentMetadata.ResourceGroupKey] = new UnevaluableExpression(null),
-                [DeploymentMetadata.DeploymentKey] = new UnevaluableExpression(null),
-                [DeploymentMetadata.DeployerKey] = new UnevaluableExpression(null),
-                [DeploymentMetadata.EnvironmentKey] = new UnevaluableExpression(null),
-                [DeploymentMetadata.ProvidersKey] = new UnevaluableExpression(null),
-                */
-            },
+            metadata: metadata,
             metricsRecorder: null);
 
         var expandedTemplate = reduced.AsTemplate();
@@ -108,5 +100,29 @@ public class Interop
         return new(
             expandedTemplate.ToJson(),
             parametersHash);
+    }
+
+    private static InsensitiveDictionary<ITemplateLanguageExpression> ParseMetadata(string metadata)
+    {
+        var metadataDict = metadata.FromJson<InsensitiveDictionary<JToken>>();
+        var response = new InsensitiveDictionary<ITemplateLanguageExpression>();
+        void AddIfPresent(string key)
+        {
+            if (metadataDict.TryGetValue(key, out var value))
+            {
+                response[key] = ExpressionParser.ParseLanguageExpression(value);
+            }
+        }
+
+        AddIfPresent(DeploymentMetadata.TenantKey);
+        AddIfPresent(DeploymentMetadata.ManagementGroupKey);
+        AddIfPresent(DeploymentMetadata.SubscriptionKey);
+        AddIfPresent(DeploymentMetadata.ResourceGroupKey);
+        AddIfPresent(DeploymentMetadata.DeploymentKey);
+        AddIfPresent(DeploymentMetadata.DeployerKey);
+        AddIfPresent(DeploymentMetadata.EnvironmentKey);
+        AddIfPresent(DeploymentMetadata.ProvidersKey);
+
+        return response;
     }
 }
