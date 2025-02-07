@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DotnetInterop } from './interop'
-import { Alert, Button, ButtonGroup, Col, Container, Dropdown, Form, FormControl, Nav, Navbar, Table } from 'react-bootstrap'
+import { Alert, Button, ButtonGroup, Col, Container, Dropdown, Form, FormControl, Nav, Navbar, Row, Table } from 'react-bootstrap'
 
 const sampleMetadata = {
   deployment: {
@@ -74,6 +74,8 @@ function App({ interop }: { interop: DotnetInterop }) {
       expandedTemplate.resources) :
     {};
 
+  const outputsByName: Record<string, { value: unknown }> = expandedTemplate?.outputs ?? {};
+
   return (
     <>
       <Navbar bg="dark" variant="dark">
@@ -84,82 +86,107 @@ function App({ interop }: { interop: DotnetInterop }) {
         </Container>
       </Navbar>
       <Container>
-        <Form.Group className="mb-3">
-          <Form.Label>Upload a template file</Form.Label>
-          <Form.Control type="file" onChange={handleTemplateFileChange} />
-        </Form.Group>
-        {templateError &&
-          <Alert variant="danger"><pre>{templateError}</pre></Alert>
+        <Row className='py-2'>
+          <h3>Inputs</h3>
+          <Form.Group className="mb-3">
+            <Form.Label>Upload a template file</Form.Label>
+            <Form.Control type="file" onChange={handleTemplateFileChange} />
+          </Form.Group>
+          {templateError &&
+            <Alert variant="danger"><pre>{templateError}</pre></Alert>
+          }
+          <Form.Group className="mb-3">
+            <Form.Label>Upload a parameters file</Form.Label>
+            <Form.Control type="file" onChange={handleParametersFileChange} />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Metadata</Form.Label>
+            <Form.Control as="textarea" rows={10} value={metadata} onChange={e => setMetadata(e.currentTarget.value)} />
+          </Form.Group>
+        </Row>
+        {parsedTemplateResult?.error &&
+          <Row className='py-2'>
+            <Alert variant="danger"><pre>{parsedTemplateResult.error}</pre></Alert>
+          </Row>
         }
-        <Form.Group className="mb-3">
-          <Form.Label>Upload a parameters file</Form.Label>
-          <Form.Control type="file" onChange={handleParametersFileChange} />
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Metadata</Form.Label>
-          <Form.Control as="textarea" rows={10} value={metadata} onChange={e => setMetadata(e.currentTarget.value)} />
-        </Form.Group>
+        {parsedTemplateResult?.value && <Row className='py-2'>
+          <h3>Template Info</h3>
+          <Table bordered>
+            <tbody>
+              {templateInfo?.templateHash &&
+                <tr>
+                  <td>Template Hash</td>
+                  <td>{templateInfo.templateHash}</td>
+                </tr>
+              }
+              {parsedTemplateResult?.value?.parametersHash &&
+                <tr>
+                  <td>Parameters Hash</td>
+                  <td>{parsedTemplateResult.value.parametersHash}</td>
+                </tr>
+              }
+              {templateInfo?.generatorName &&
+                <tr>
+                  <td>Generator Name</td>
+                  <td>{templateInfo.generatorName}</td>
+                </tr>
+              }
+              {templateInfo?.generatorVersion &&
+                <tr>
+                  <td>Generator Version</td>
+                  <td>{templateInfo.generatorVersion}</td>
+                </tr>
+              }
+              {templateInfo?.validationMessage &&
+                <tr>
+                  <td>Validation Message</td>
+                  <td>{templateInfo.validationMessage}</td>
+                </tr>
+              }
+            </tbody>
+          </Table>
+        </Row>}
+        {Object.keys(resourcesByName).length > 0 && <Row className='py-2'>
+          <h3>Resources</h3>
+          <Dropdown as={ButtonGroup} onSelect={key => key ? setSelectedResource(key) : setSelectedResource(undefined)} onToggle={() => setFilterText('')}>
+            <Dropdown.Toggle as={Button} size="sm" variant="primary" className="mx-1">View Resource</Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Col>
+                <FormControl
+                  placeholder="Type to filter..."
+                  onChange={(e) => setFilterText(e.target.value)}
+                  value={filterText} />
+              </Col>
+              {Object.keys(resourcesByName).map(key =>
+                <Dropdown.Item key={key} eventKey={key} active={false}>{key}</Dropdown.Item>)}
+            </Dropdown.Menu>
+          </Dropdown>
+          {selectedResource && resourcesByName[selectedResource] && <code>
+            <pre>
+              {JSON.stringify(resourcesByName[selectedResource], null, 2)}
+            </pre>
+          </code>}
+        </Row>}
+        {Object.keys(outputsByName).length > 0 && <Row className='py-2'>
+          <h3>Outputs</h3>
+          <Table bordered>
+            <thead>
+              <tr>
+                <th>Output Name</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(outputsByName).map(([key, value]) =>
+                <tr>
+                  <td>{key}</td>
+                  <td>{JSON.stringify(value.value, null, 2)}</td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </Row>}
       </Container>
-      <Container>
-        <Table bordered>
-          <tbody>
-            {templateInfo?.templateHash &&
-              <tr>
-                <td>Template Hash</td>
-                <td>{templateInfo.templateHash}</td>
-              </tr>
-            }
-            {parsedTemplateResult?.value?.parametersHash &&
-              <tr>
-                <td>Parameters Hash</td>
-                <td>{parsedTemplateResult.value.parametersHash}</td>
-              </tr>
-            }
-            {templateInfo?.generatorName &&
-              <tr>
-                <td>Generator Name</td>
-                <td>{templateInfo.generatorName}</td>
-              </tr>
-            }
-            {templateInfo?.generatorVersion &&
-              <tr>
-                <td>Generator Version</td>
-                <td>{templateInfo.generatorVersion}</td>
-              </tr>
-            }
-            {templateInfo?.validationMessage &&
-              <tr>
-                <td>Validation Message</td>
-                <td>{templateInfo.validationMessage}</td>
-              </tr>
-            }
-          </tbody>
-        </Table>
-      </Container>
-      {parsedTemplateResult?.error &&
-        <Alert variant="danger"><pre>{parsedTemplateResult.error}</pre></Alert>
-      }
-      {Object.keys(resourcesByName).length > 0 && <Container>
-        <Dropdown as={ButtonGroup} onSelect={key => key ? setSelectedResource(key) : setSelectedResource(undefined)} onToggle={() => setFilterText('')}>
-          <Dropdown.Toggle as={Button} size="sm" variant="primary" className="mx-1">View Resource</Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Col>
-              <FormControl
-                placeholder="Type to filter..."
-                onChange={(e) => setFilterText(e.target.value)}
-                value={filterText} />
-            </Col>
-            {Object.keys(resourcesByName).map(key =>
-              <Dropdown.Item key={key} eventKey={key} active={false}>{key}</Dropdown.Item>)}
-          </Dropdown.Menu>
-        </Dropdown>
-        {selectedResource && resourcesByName[selectedResource] && <code>
-          <pre>
-            {JSON.stringify(resourcesByName[selectedResource], null, 2)}
-          </pre>
-        </code>}
-      </Container>
-      }
     </>
   )
 }
