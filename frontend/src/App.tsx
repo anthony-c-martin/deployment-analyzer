@@ -2,17 +2,58 @@ import { useState } from 'react';
 import { DotnetInterop } from './interop'
 import { Alert, Button, ButtonGroup, Col, Container, Dropdown, Form, FormControl, Nav, Navbar, Table } from 'react-bootstrap'
 
+const sampleMetadata = {
+  deployment: {
+    name: "foo",
+  },
+  subscription: {
+    tenantId: "00000000-0000-0000-0000-000000000000",
+    subscriptionId: "00000000-0000-0000-0000-000000000000",
+  },
+  resourceGroup: {
+    id: '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1',
+    name: 'rg1',
+    location: 'eastus',
+  },
+  environment: {
+    name: "AzureCloud",
+    gallery: "https://gallery.azure.com/",
+    graph: "https://graph.windows.net/",
+    portal: "https://portal.azure.com",
+    graphAudience: "https://graph.windows.net/",
+    activeDirectoryDataLake: "https://datalake.azure.net/",
+    batch: "https://batch.core.windows.net/",
+    media: "https://rest.media.azure.net",
+    sqlManagement: "https://management.core.windows.net:8443/",
+    vmImageAliasDoc: "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/master/arm-compute/quickstart-templates/aliases.json",
+    resourceManager: "https://management.azure.com/",
+    authentication: {
+      loginEndpoint: "https://login.microsoftonline.com/",
+      audiences: [
+        "https://management.core.windows.net/",
+        "https://management.azure.com/"
+      ],
+      tenant: "common",
+      identityProvider: "AAD"
+    },
+    suffixes: {
+      acrLoginServer: ".azurecr.io",
+      azureDatalakeAnalyticsCatalogAndJob: "azuredatalakeanalytics.net",
+      azureDatalakeStoreFileSystem: "azuredatalakestore.net",
+      azureFrontDoorEndpointSuffix: "azurefd.net",
+      keyvaultDns: ".vault.azure.net",
+      sqlServerHostname: ".database.windows.net",
+      storage: "core.windows.net"
+    }
+  }
+};
+
 function App({ interop }: { interop: DotnetInterop }) {
   const [filterText, setFilterText] = useState('');
   const [selectedResource, setSelectedResource] = useState<string>();
   const [template, setTemplate] = useState<string>();
   const [parameters, setParameters] = useState<string>();
-  const [metadata, setMetadata] = useState<string>(JSON.stringify({
-    'resourceGroup': {
-      'id': '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1',
-      'location': 'eastus',
-    }
-  }, null, 2));
+  const [metadata, setMetadata] = useState<string>(JSON.stringify(sampleMetadata, null, 2));
 
   const handleTemplateFileChange = async (e: React.ChangeEvent<HTMLInputElement>) =>
     setTemplate(await e.target.files?.item(0)?.text() ?? undefined);
@@ -26,9 +67,10 @@ function App({ interop }: { interop: DotnetInterop }) {
 
   const parsedTemplateResult = template ? tryExecute(() => interop.getParsedTemplate({ template, parameters, metadata })) : undefined;
   const expandedTemplate = parsedTemplateResult?.value ? JSON.parse(parsedTemplateResult.value.expandedTemplate) : undefined;
-  const resourcesByName = expandedTemplate ? 
-    (Array.isArray(expandedTemplate.resources) ? 
-    expandedTemplate.resources.reduce((acc: any, cur: any) => ({ ...acc, [cur.name]: cur }), {}) :
+  const resourcesByName = expandedTemplate ?
+    (Array.isArray(expandedTemplate.resources) ?
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expandedTemplate.resources.reduce((acc: any, cur: any) => ({ ...acc, [cur.name]: cur }), {}) :
       expandedTemplate.resources) :
     {};
 
@@ -47,7 +89,7 @@ function App({ interop }: { interop: DotnetInterop }) {
           <Form.Control type="file" onChange={handleTemplateFileChange} />
         </Form.Group>
         {templateError &&
-          <Alert variant="danger">{templateError}</Alert>
+          <Alert variant="danger"><pre>{templateError}</pre></Alert>
         }
         <Form.Group className="mb-3">
           <Form.Label>Upload a parameters file</Form.Label>
@@ -95,27 +137,27 @@ function App({ interop }: { interop: DotnetInterop }) {
         </Table>
       </Container>
       {parsedTemplateResult?.error &&
-        <Alert variant="danger">{parsedTemplateResult.error}</Alert>
+        <Alert variant="danger"><pre>{parsedTemplateResult.error}</pre></Alert>
       }
       {Object.keys(resourcesByName).length > 0 && <Container>
         <Dropdown as={ButtonGroup} onSelect={key => key ? setSelectedResource(key) : setSelectedResource(undefined)} onToggle={() => setFilterText('')}>
-        <Dropdown.Toggle as={Button} size="sm" variant="primary" className="mx-1">View Resource</Dropdown.Toggle>
-        <Dropdown.Menu>
-          <Col>
-            <FormControl
-              placeholder="Type to filter..."
-              onChange={(e) => setFilterText(e.target.value)}
-              value={filterText} />
-          </Col>
-          {Object.keys(resourcesByName).map(key => 
-            <Dropdown.Item key={key} eventKey={key} active={false}>{key}</Dropdown.Item>)}
-        </Dropdown.Menu>
+          <Dropdown.Toggle as={Button} size="sm" variant="primary" className="mx-1">View Resource</Dropdown.Toggle>
+          <Dropdown.Menu>
+            <Col>
+              <FormControl
+                placeholder="Type to filter..."
+                onChange={(e) => setFilterText(e.target.value)}
+                value={filterText} />
+            </Col>
+            {Object.keys(resourcesByName).map(key =>
+              <Dropdown.Item key={key} eventKey={key} active={false}>{key}</Dropdown.Item>)}
+          </Dropdown.Menu>
         </Dropdown>
         {selectedResource && resourcesByName[selectedResource] && <code>
           <pre>
             {JSON.stringify(resourcesByName[selectedResource], null, 2)}
           </pre>
-        </code> }
+        </code>}
       </Container>
       }
     </>
@@ -128,6 +170,6 @@ function tryExecute<T>(func: () => T) {
   try {
     return { value: func() };
   } catch (e) {
-    return { error: `${e}`};
+    return { error: `${e}` };
   }
 }

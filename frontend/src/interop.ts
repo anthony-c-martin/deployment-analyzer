@@ -25,10 +25,13 @@ export interface DotnetInterop {
   getParsedTemplate(request: GetParsedTemplateRequest): GetParsedTemplateResponse;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function invokeMethod(interop: any, methodName: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (arg: any) => {
     try {
       return interop.invokeMethod(methodName, arg);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       if (e.message && e.stack) {
         throw `Managed Exception: ${e.message}\n${e.stack}`;
@@ -39,6 +42,7 @@ function invokeMethod(interop: any, methodName: string) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getDotnetInterop(interop: any): DotnetInterop {
   return {
     getTemplateInfo: invokeMethod(interop, "GetTemplateInfo"),
@@ -46,8 +50,10 @@ function getDotnetInterop(interop: any): DotnetInterop {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function initializeInterop(self: any) {
-  return new Promise<DotnetInterop>((resolve, _) => {
+  return new Promise<DotnetInterop>((resolve) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     self['InteropInitialize'] = (newInterop: any) => {
       resolve(getDotnetInterop(newInterop));
     }

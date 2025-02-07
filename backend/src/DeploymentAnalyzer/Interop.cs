@@ -71,17 +71,29 @@ public class Interop
         string ExpandedTemplate,
         string ParmetersHash);
 
+    private static ITemplateLanguageExpression GetParameterExpression(string name, DeploymentParameterDefinition parameter)
+    {
+        if (parameter.Value != null)
+        {
+            return JTokenConverter.ConvertToLanguageExpression(parameter.Value);
+        }
+
+        if (parameter.Reference != null)
+        {
+            return JTokenConverter.ConvertToLanguageExpression($"<dummy value for secret {name}>");
+        }
+
+        throw new InvalidOperationException($"Parameter {name} must have a value or reference.");        
+    }
+
     [JSInvokable]
     public GetParsedTemplateResponse GetParsedTemplate(GetParsedTemplateRequest request)
     {
         var template = TemplateEngine.ParseTemplate(request.Template);
+        var parameters = request.Parameters?.TryFromJson<DeploymentParametersDefinition>();
         var metadata = ParseMetadata(request.Metadata);
 
-        Dictionary<string, ITemplateLanguageExpression> parametersDictionary = [];
-        if (request.Parameters?.TryFromJson<DeploymentParametersDefinition>() is { } parametersDefinition)
-        {
-            parametersDictionary = parametersDefinition.Parameters.ToDictionary(x => x.Key, x => JTokenConverter.ConvertToLanguageExpression(x.Value.Value));
-        }
+        var parametersDictionary = parameters?.Parameters.ToDictionary(x => x.Key, x => GetParameterExpression(x.Key, x.Value)) ?? [];
 
         var reduced = TemplateEngine.ReduceTemplateLanguageExpressions(
             managementGroupName: null,

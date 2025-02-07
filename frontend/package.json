@@ -8,6 +8,7 @@
     "dev": "npm run build-wasm && vite",
     "build": "npm run build-wasm && tsc -b && vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview"
   },
   "dependencies": {
