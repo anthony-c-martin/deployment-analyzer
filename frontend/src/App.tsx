@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DotnetInterop } from './interop'
 import { Alert, Button, ButtonGroup, Col, Container, Dropdown, Form, FormControl, Nav, Navbar, Row, Table } from 'react-bootstrap'
+import { Github } from 'react-bootstrap-icons';
 
 const sampleMetadata = {
   deployment: {
@@ -81,8 +82,11 @@ function App({ interop }: { interop: DotnetInterop }) {
       <Navbar bg="dark" variant="dark">
         <Container>
           <Navbar.Brand>Deployment Analyzer</Navbar.Brand>
-          <Nav className="ms-auto">
-          </Nav>
+          <Nav.Item className="ml-auto">
+            <Nav.Link href="https://github.com/anthony-c-martin/deployment-analyzer">
+              <Button variant="secondary"><Github/></Button>
+            </Nav.Link>
+          </Nav.Item>
         </Container>
       </Navbar>
       <Container>

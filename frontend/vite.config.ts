@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, normalizePath } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import react from '@vitejs/plugin-react'
 import path from 'path'
@@ -10,8 +10,8 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: path.resolve(__dirname, '../backend/src/DeploymentAnalyzer/bin/Release/net8.0/publish/wwwroot/_framework/'),
-          dest: './',
+          src: normalizePath(path.resolve(__dirname, '../backend/src/DeploymentAnalyzer/bin/Release/net8.0/publish/wwwroot') + '/**/*.*'),
+          dest: './_framework',
         },
       ],
     })
