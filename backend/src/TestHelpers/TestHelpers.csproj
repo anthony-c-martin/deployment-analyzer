@@ -7,7 +7,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.0.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
-    <PackageReference Include="JsonDiffPatch.Net" Version="2.3.0" />
+    <PackageReference Include="JsonDiffPatch.Net" Version="2.4.0" />
     <PackageReference Include="DiffPlex" Version="1.7.2" />
   </ItemGroup>
 </Project>
