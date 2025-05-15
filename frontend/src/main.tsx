@@ -5,6 +5,13 @@ import App from './App.tsx'
 import { initializeInterop } from './interop.ts'
 import { Spinner } from 'react-bootstrap'
 
+const updateTheme = () => document.documentElement.setAttribute(
+  'data-bs-theme',
+  window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme);
+window.addEventListener('DOMContentLoaded', updateTheme);
+
 const rootElement = createRoot(document.getElementById('root')!);
 
 rootElement.render(<Spinner animation="border" role="status"/>);

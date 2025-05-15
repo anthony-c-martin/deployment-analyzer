@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
 using TestHelpers;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace DeploymentAnalyzer.Tests;
 
@@ -23,18 +24,23 @@ public class InteropTests
     }
 
     [TestMethod]
-    public void GetParsedTemplate_returns_expanded_template()
+    public async Task GetParsedTemplate_returns_expanded_template()
     {
         var templateFile = new EmbeddedFile(Assembly.GetExecutingAssembly(), "Files/ds.json");
         var parametersFile = new EmbeddedFile(Assembly.GetExecutingAssembly(), "Files/ds.parameters.json");
 
         var interop = new Interop();
-        var result = interop.GetParsedTemplate(new(
+        var result = await interop.GetParsedTemplate(new(
             Template: templateFile.Contents!,
             Parameters: parametersFile.Contents!,
-            Metadata: "{}"));
+            Metadata: new(
+                TenantId: "00000000-0000-0000-0000-000000000000",
+                SubscriptionId: "00000000-0000-0000-0000-000000000000",
+                ResourceGroup: "myResourceGroup",
+                Location: "eastus",
+                DeploymentName: "myDeployment"),
+            ExternalInputs: null));
 
-        result.ExpandedTemplate.Should().NotBeNull();
-        result.ParmetersHash.Should().Be("8013686910464437545");
+        result.PredictedResources.Should().NotBeEmpty();
     }
 }
