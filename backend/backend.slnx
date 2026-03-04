@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DeploymentAnalyzer/DeploymentAnalyzer.csproj" />
+    <Project Path="src/DeploymentAnalyzer.Tests/DeploymentAnalyzer.Tests.csproj" />
+  </Folder>
+</Solution>

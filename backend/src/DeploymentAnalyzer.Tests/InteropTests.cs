@@ -1,8 +1,6 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FluentAssertions;
-using TestHelpers;
 using System.Reflection;
-using System.Threading.Tasks;
+using Azure.Deployments.Testing.Utilities;
 
 namespace DeploymentAnalyzer.Tests;
 
