@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Deployments.Engine" Version="1.590.0" />
+    <PackageReference Include="Azure.Deployments.Engine" Version="1.683.0" />
   </ItemGroup>
 
 </Project>
